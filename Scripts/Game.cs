@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class Game : MonoBehaviour
 {
 
+    public bool dev;
     public GameObject chesspiece;
 
     public GameObject movePlate;
@@ -91,7 +92,7 @@ public class Game : MonoBehaviour
     public GameObject input;
     public int tutorialnum = 0;
 
-    public string[,] levels  = {{"`", "Kyyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/8", "-1", "-1", "levels", "Level Select", "moves",""}, // w - - 0 1
+    public string[,] levels  = {{"`", "1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/1yyyyyyy/7K", "-1", "-1", "levels", "Level Select", "moves",""}, // w - - 0 1
     {"f", "8/8/8/8/8/8/8/8", "10", "12", "ingame", "Tutorial", "moves",""},
     {"f", "8/8/5k2/8/3N4/8/8/8", "4", "6", "ingame", "Horsin' Around", "moves",""},
     {"f", "6rk/6rr/8/8/8/8/RR6/R7", "3", "4", "ingame", "Prying Away", "moves",""},
@@ -120,7 +121,8 @@ public class Game : MonoBehaviour
     {"f", "kkkkkkkk/8/xxxxxxxx/8/8/8/8/8/", "8", "10", "setpiece", "Royal Flush", "points", "12"},
     {"f", "bbkbbbbq/1q1qpp2/2nqq12/8/8/1x5x/4x2x/4K3", "8", "11", "setpiece", "Secret Escort", "points", "28"},
     {"f", "qqqqkqqq/rrrrrrrr/rrrrrrrr/rrrrrrrr/8/xxxxx3/xxxxx3/xxxxx2K", "14", "16", "setpiece", "Safety First", "points", "40"},
-    {"f", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", "4", "6", "sandbox", "Sandbox Mode", "none",""}}; 
+    //{"f", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", "4", "6", "sandbox", "Sandbox Mode", "none",""}
+    }; 
 
     public string charlist = "`1234567890-=qwetyuiop[]asdfghjkl;";
 
@@ -129,6 +131,7 @@ public class Game : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        dev = false;
         if(Menu.Mmedals == null){
             medals =  new string[levels.Length]; 
             for(int i = 0; i < medals.Length; i++){
@@ -395,10 +398,10 @@ public class Game : MonoBehaviour
             setStringPosition(metacurposition);
         }
         undo.Add(curposition);
-        if(title == "Horsin' Around")
+        input.SetActive(false);
+        if(title == "Horsin' Around" && dev)
             input.SetActive(true);
-        else
-            input.SetActive(false);
+            
     }
 
 
@@ -522,7 +525,9 @@ public class Game : MonoBehaviour
                 x++;
                 continue;
             }
-
+            if (!dev && metacurposition[i] == 'y' && (7-y)*7 + x > completedLevels() * 2 + 1) {
+                break;   
+            }
             if((metacurposition[i] == 'x' || metacurposition[i] == 'y') && !pieceplatepositions[x,y]){
                 float x2 = x;
                 float y2 = y;
@@ -891,7 +896,7 @@ public class Game : MonoBehaviour
         if(Input.GetKeyDown("left shift")){  //shift
             Debug.Log(getStringPosition());
         }
-        if(Input.GetKeyDown("right shift")){  //shift
+        if(Input.GetKeyDown("right shift") && dev){  //shift
             randomPosition();
         }
         if(Input.GetKeyDown("return") && !input.GetComponent<InputField>().isFocused){  //enter
@@ -899,7 +904,7 @@ public class Game : MonoBehaviour
         }
         if(Input.GetKeyDown("space")){ //space
             //source.PlayOneShot(winclip); 
-            Debug.Log(tutorialnum); 
+            Debug.Log("Dev is " + dev); 
             /*Debug.Log("undos");
             for(int i = 0; i < undo.Count; i++){
                 Debug.Log(undo[i]);
@@ -947,7 +952,7 @@ public class Game : MonoBehaviour
         if(pawnpromote) return;
         gameOver = false;
         GameObject.FindGameObjectWithTag("RestartText").GetComponent<Text>().enabled = false;
-        GameObject.FindGameObjectWithTag("WinnerText").GetComponent<Text>().enabled = false;
+        if (mode != "levels") GameObject.FindGameObjectWithTag("WinnerText").GetComponent<Text>().enabled = false;
         if(undo.Count < 2) return;
         if(mode == "sandbox") currentPlayer = (currentPlayer == "white" ? "black" : "white");
         redo.Add(getStringPosition());
@@ -975,7 +980,7 @@ public class Game : MonoBehaviour
         if(redo.Count == 0) return;
         if(pawnpromote) return;
         GameObject.FindGameObjectWithTag("RestartText").GetComponent<Text>().enabled = false;
-        GameObject.FindGameObjectWithTag("WinnerText").GetComponent<Text>().enabled = false;
+        if (mode != "levels") GameObject.FindGameObjectWithTag("WinnerText").GetComponent<Text>().enabled = false;
         gameOver = false;
         string save = redo[redo.Count-1];
         setStringPosition(save);
@@ -1313,7 +1318,15 @@ public class Game : MonoBehaviour
         }
         return false;
     }
-
+    public int completedLevels() {
+        int cnt = 0;
+        for (int i = 0; i < Menu.Mmedals.Length; i++) {
+            if (Menu.Mmedals[i] != "gray") {
+                cnt++;
+            }
+        }
+        return cnt;
+    }
     public bool compare(GameObject obj, GameObject obj2, string piececolor){ //true if piece < piece2
         if(obj == null || obj2 == null) return false;
         Chessman piece = obj.GetComponent<Chessman>();

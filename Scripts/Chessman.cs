@@ -417,7 +417,7 @@ public class Chessman : MonoBehaviour
         if(Input.GetKeyDown("space")){ //space
             //DestroyMousePiece(); 
         }
-        if(Input.GetKeyDown("right shift")){ //shift
+        if(Input.GetKeyDown("right shift") && controller.GetComponent<Game>().dev){ //shift
             MousePieceSpawn();
         }
     }
